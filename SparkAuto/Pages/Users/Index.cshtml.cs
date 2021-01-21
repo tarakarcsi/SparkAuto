@@ -5,7 +5,6 @@ using SparkAuto.Data;
 using SparkAuto.Model;
 using SparkAuto.Model.ViewModel;
 using SparkAuto.Utility;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,7 +23,7 @@ namespace SparkAuto.Pages.Users
         [BindProperty]
         public UsersListViewModel UsersListVM { get; set; }
 
-        public async Task<IActionResult> OnGet(int productPage = 1)
+        public async Task<IActionResult> OnGet(int productPage = 1, string searchEmail = null, string searchName = null, string searchPhone = null)
         {
             UsersListVM = new UsersListViewModel()
             {
@@ -33,6 +32,37 @@ namespace SparkAuto.Pages.Users
 
             StringBuilder param = new StringBuilder();
             param.Append("/Users?productPage=:");
+
+            param.Append("&searchName=");
+            if(searchName != null)
+                param.Append(searchName);
+
+            param.Append("&searchEmail=");
+            if (searchEmail != null)
+                param.Append(searchEmail);
+
+            param.Append("&searchPhone=");
+            if (searchPhone != null)
+                param.Append(searchPhone);
+
+            if(searchEmail != null)
+            {
+                UsersListVM.ApplicationUserList = await _db.ApplicationUser.Where(u => u.Email.ToLower().Contains(searchEmail.ToLower())).ToListAsync();
+            }
+            else
+            {
+                if (searchName != null)
+                {
+                    UsersListVM.ApplicationUserList = await _db.ApplicationUser.Where(u => u.Name.ToLower().Contains(searchName.ToLower())).ToListAsync();
+                }
+                else
+                {
+                    if (searchPhone != null)
+                    {
+                        UsersListVM.ApplicationUserList = await _db.ApplicationUser.Where(u => u.PhoneNumber.ToLower().Contains(searchPhone.ToLower())).ToListAsync();
+                    }
+                }
+            }
 
             var count = UsersListVM.ApplicationUserList.Count;
 
